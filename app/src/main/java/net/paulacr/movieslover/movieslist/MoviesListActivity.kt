@@ -7,11 +7,10 @@ import org.koin.android.viewmodel.ext.android.viewModel
 
 class MoviesListActivity : AppCompatActivity() {
 
-    private val viewModel : MoviesListViewModel by viewModel()
+    private val viewModel: MoviesListViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        
     }
 }
