@@ -1,7 +1,7 @@
 package net.paulacr.movieslover
 
 import android.app.Application
-import net.paulacr.movieslover.di.moviesModule
+import net.paulacr.movieslover.di.moviesApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -11,7 +11,7 @@ class MoviesApplication : Application() {
         super.onCreate()
 
         startKoin {
-            modules(moviesModule).androidContext(applicationContext)
+            modules(moviesApp).androidContext(applicationContext)
         }
     }
 }

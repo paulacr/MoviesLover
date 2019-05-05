@@ -1,13 +1,10 @@
-package net.paulacr.movieslover.movieslist
+package net.paulacr.movieslover.ui
 
-import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.os.Bundle
 import net.paulacr.movieslover.R
-import org.koin.android.viewmodel.ext.android.viewModel
 
-class MoviesListActivity : AppCompatActivity() {
-
-    private val viewModel: MoviesListViewModel by viewModel()
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

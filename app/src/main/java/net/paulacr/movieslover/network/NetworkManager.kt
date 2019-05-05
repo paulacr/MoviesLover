@@ -7,14 +7,13 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class NetworkManager {
+object NetworkManager {
 
     fun getBuilder(): Retrofit {
         val loggingInterceptor = HttpLoggingInterceptor()
-        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.HEADERS
 
         val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(MovieDBInterceptor())
             .addInterceptor(loggingInterceptor)
             .build()
 

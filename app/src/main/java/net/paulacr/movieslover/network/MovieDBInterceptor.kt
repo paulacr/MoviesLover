@@ -8,14 +8,17 @@ class MovieDBInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
 
-        val newRequest = chain.request().newBuilder()
-            .addHeader(API_KEY_NAME, BuildConfig.API_KEY)
+        val newRequest = chain.request()
+        val url = newRequest.url()
+            .newBuilder()
+            .addQueryParameter(API_KEY_NAME, BuildConfig.API_KEY)
             .build()
 
+        newRequest.newBuilder().url(url).build()
         return chain.proceed(newRequest)
     }
 
     companion object {
-        const val API_KEY_NAME = "x-api-key"
+        const val API_KEY_NAME = "api_key"
     }
 }
