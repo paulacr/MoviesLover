@@ -10,10 +10,12 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import net.paulacr.movieslover.data.model.Genre
 import net.paulacr.movieslover.data.model.Genres
-import net.paulacr.movieslover.data.model.Movie
+import net.paulacr.movieslover.data.model.MoviesResult
 import net.paulacr.movieslover.data.model.MovieWithGenres
+import net.paulacr.movieslover.data.model.Movie
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 
 class MoviesListViewModel(app: Application, private val repository: MoviesRepositoryImpl) : AndroidViewModel(app),
@@ -21,11 +23,20 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
 
     private lateinit var moviesDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
+    private var page: Int = 1
+    var subject = BehaviorSubject.create<Unit>()
 
     fun getPopularMovies() {
-        val moviesObservable = repository.getPopularMovies("1").map {
-            it.results
-        }
+        subscribeSubject()
+    }
+
+    fun subscribeSubject() {
+        val moviesObservable = subject.startWith(Unit)
+            .flatMap {
+                repository.getPopularMovies(getPage())
+            }.map {
+                it.results
+            }
 
         val genresObservable: Observable<Genres> = repository.getGenres()
 
@@ -40,6 +51,10 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
             })
 
         compositeDisposable.add(moviesDisposable)
+    }
+
+    fun getMoreMovies(): Observable<MoviesResult> {
+        return repository.getPopularMovies(getPage())
     }
 
     /**
@@ -84,5 +99,17 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
             it.id == id
         }.toMutableList()
         return list
+    }
+
+    private fun getPage(): String {
+        return page.toString()
+    }
+
+    private fun increasePageNumber() {
+        page++
+    }
+
+    private fun decreasePageNumber() {
+        page--
     }
 }

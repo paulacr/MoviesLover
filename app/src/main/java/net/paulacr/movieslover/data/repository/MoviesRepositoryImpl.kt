@@ -1,6 +1,7 @@
 package net.paulacr.movieslover.data.repository
 
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import net.paulacr.movieslover.data.model.Genres
 import net.paulacr.movieslover.data.model.MoviesResult
 import net.paulacr.movieslover.network.ApiInterface
@@ -8,7 +9,7 @@ import net.paulacr.movieslover.network.ApiInterface
 class MoviesRepositoryImpl(val service: ApiInterface) : MoviesRepository {
 
     override fun getPopularMovies(page: String): Observable<MoviesResult> {
-        return service.getPopularMovies(page = page)
+        return service.getPopularMovies(page = page).subscribeOn(Schedulers.io())
     }
 
     override fun fetchMoviesBySearch(text: String): Observable<MoviesResult> {
