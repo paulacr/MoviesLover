@@ -8,6 +8,10 @@ interface MoviesRepository {
 
     fun getPopularMovies(page: String): Observable<MoviesResult>
 
+    fun getPopularMoviesFromDB(page: String): Observable<MoviesResult>
+
+    fun getPopularMoviesFromAPI(page: String): Observable<MoviesResult>
+
     fun fetchMoviesBySearch(text: String): Observable<MoviesResult>
 
     fun getGenres(): Observable<Genres>
