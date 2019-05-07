@@ -1,3 +1,9 @@
 package net.paulacr.movieslover.data.model
 
-data class Movie(val id: String, val title: String)
+import com.google.gson.annotations.SerializedName
+
+data class Movie(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("genre_ids") val genresIds: List<String>
+)
