@@ -30,12 +30,12 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
         subscribeSubject()
     }
 
-    fun subscribeSubject() {
+    private fun subscribeSubject() {
         val moviesObservable = subject.startWith(Unit)
             .flatMap {
                 repository.getPopularMovies(getPage())
             }.map {
-                it.results
+                listOf(Movie("1", "test", listOf("1", "2")))
             }
 
         val genresObservable: Observable<Genres> = repository.getGenres()
