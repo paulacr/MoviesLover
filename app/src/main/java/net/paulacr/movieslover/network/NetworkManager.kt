@@ -1,5 +1,6 @@
 package net.paulacr.movieslover.network
 
+import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import net.paulacr.movieslover.BuildConfig
 import okhttp3.OkHttpClient
@@ -15,6 +16,7 @@ object NetworkManager {
 
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .addNetworkInterceptor(StethoInterceptor())
             .build()
 
         return Retrofit.Builder()

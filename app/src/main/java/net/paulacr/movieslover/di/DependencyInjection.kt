@@ -1,6 +1,8 @@
 package net.paulacr.movieslover.di
 
 import android.arch.persistence.room.Room
+import android.content.Context
+import android.content.SharedPreferences
 import net.paulacr.movieslover.data.MoviesDatabase
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 import net.paulacr.movieslover.network.NetworkManager.generalApi
@@ -9,6 +11,10 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+
+val appModule = module {
+    single<SharedPreferences> { androidContext().getSharedPreferences("SharedPreferences", Context.MODE_PRIVATE) }
+}
 
 val moviesModule = module {
     viewModel { MoviesListViewModel(androidApplication(), get()) }
@@ -23,7 +29,7 @@ val databaseModule = module {
 }
 
 val repositoryModule = module {
-    single { MoviesRepositoryImpl(get(), get()) }
+    single { MoviesRepositoryImpl(get(), get(), get()) }
 }
 
-val moviesApp = listOf(databaseModule, moviesModule, apiInterface, repositoryModule)
+val moviesApp = listOf(appModule, databaseModule, moviesModule, apiInterface, repositoryModule)
