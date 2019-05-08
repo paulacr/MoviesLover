@@ -13,7 +13,6 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import net.paulacr.movieslover.data.model.Genre
 import net.paulacr.movieslover.data.model.Genres
-import net.paulacr.movieslover.data.model.MoviesResult
 import net.paulacr.movieslover.data.model.MovieWithGenres
 import net.paulacr.movieslover.data.model.Movie
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
@@ -34,8 +33,6 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
         val moviesObservable = subject.startWith(Unit)
             .flatMap {
                 repository.getPopularMovies(getPage())
-            }.map {
-                listOf(Movie("1", "test", listOf("1", "2")))
             }
 
         val genresObservable: Observable<Genres> = repository.getGenres()
@@ -45,16 +42,14 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ moviesWithGenres ->
-                Log.i("Test", "test")
+                Log.i("Test 1", "test")
             }, { error ->
-                Log.e("Test", "test")
+                Log.e("Test error", "test", error)
+            }, {
+                increasePageNumber()
             })
 
         compositeDisposable.add(moviesDisposable)
-    }
-
-    fun getMoreMovies(): Observable<MoviesResult> {
-        return repository.getPopularMovies(getPage())
     }
 
     /**

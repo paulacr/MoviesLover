@@ -3,13 +3,15 @@ package net.paulacr.movieslover.data
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
+import android.arch.persistence.room.TypeConverters
 import android.content.Context
-import net.paulacr.movieslover.data.model.MoviesResult
+import net.paulacr.movieslover.data.model.Movie
 
-@Database(entities = [MoviesResult::class], version = 1)
+@Database(entities = [Movie::class], version = 1)
+@TypeConverters(Converter::class)
 abstract class MoviesDatabase : RoomDatabase() {
 
-    abstract fun moviesResultDao(): MoviesResultDao
+    abstract fun movie(): MovieDao
 
     companion object {
         private var TEST_DATABASE = false

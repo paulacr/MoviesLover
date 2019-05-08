@@ -1,17 +1,23 @@
 package net.paulacr.movieslover.data
 
 import android.arch.persistence.room.Delete
+import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Insert
+import android.arch.persistence.room.OnConflictStrategy
 import android.arch.persistence.room.Query
-import io.reactivex.Observable
+import io.reactivex.Single
 import net.paulacr.movieslover.data.model.Movie
 
+@Dao
 interface MovieDao {
 
     @Query("SELECT * FROM movie")
-    fun getAll(): Observable<List<Movie>>
+    fun getAll(): Single<List<Movie>>
 
-    @Insert
+    @Query("SELECT * FROM movie WHERE page = :page")
+    fun getAll(page: Int): Single<List<Movie>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(movies: List<Movie>)
 
     @Delete

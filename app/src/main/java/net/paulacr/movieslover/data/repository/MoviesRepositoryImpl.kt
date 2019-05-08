@@ -1,37 +1,61 @@
 package net.paulacr.movieslover.data.repository
 
+import android.content.SharedPreferences
+import android.util.Log
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import net.paulacr.movieslover.data.MoviesDatabase
 import net.paulacr.movieslover.data.model.Genres
-import net.paulacr.movieslover.data.model.MoviesResult
+import net.paulacr.movieslover.data.model.Movie
 import net.paulacr.movieslover.network.ApiInterface
 
-class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase) :
+class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sharedPreferences: SharedPreferences) :
     MoviesRepository {
 
-    override fun getPopularMovies(page: String): Observable<MoviesResult> {
-        return Observable.concatArrayDelayError(getPopularMoviesFromDB(page), getPopularMoviesFromAPI(page))
+    override fun getPopularMovies(page: String): Observable<List<Movie>> {
+        if (false) {
+            return getPopularMoviesFromAPI(page).subscribeOn(Schedulers.io())
+        } else {
+            return getPopularMoviesFromDB(page).subscribeOn(Schedulers.io()).flatMap {
+                if (it.isNullOrEmpty()) {
+                    getPopularMoviesFromAPI(page)
+                } else {
+                    Observable.just(it)
+                }
+            }
+        }
     }
 
-    override fun getPopularMoviesFromAPI(page: String): Observable<MoviesResult> {
+    override fun getPopularMoviesFromAPI(page: String): Observable<List<Movie>> {
         return service.getPopularMovies(page = page).subscribeOn(Schedulers.io())
-            .doOnNext {
-                (db as MoviesDatabase).moviesResultDao().insertAll(it)
+            .map {
+                it.results
+            }.doOnNext {
+                db.movie().insertAll(it)
+            }.doOnError {
+                Log.e("Error database", "msg: ", it)
             }
     }
 
-    override fun getPopularMoviesFromDB(page: String): Observable<MoviesResult> {
-        return db.moviesResultDao().getAll().map {
-            it.get(0)
-        }.toObservable()
+    override fun getPopularMoviesFromDB(page: String): Observable<List<Movie>> {
+        return db.movie().getAll().toObservable()
     }
 
-    override fun fetchMoviesBySearch(text: String): Observable<MoviesResult> {
-        return service.getPopularMovies(page = "1")
+    override fun fetchMoviesBySearch(text: String): Observable<List<Movie>> {
+        return service.getPopularMovies(page = "1").map {
+            it.results
+        }
     }
 
     override fun getGenres(): Observable<Genres> {
         return service.getGenres()
+    }
+
+    private fun isExpired(): Boolean {
+        return System.currentTimeMillis() < (System.currentTimeMillis() - EXPIRATION_TIME)
+    }
+
+    companion object {
+        private const val EXPIRATION_TIME = 86400000
     }
 }
