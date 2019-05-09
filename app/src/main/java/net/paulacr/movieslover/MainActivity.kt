@@ -1,8 +1,7 @@
-package net.paulacr.movieslover.ui
+package net.paulacr.movieslover
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import net.paulacr.movieslover.R
 
 class MainActivity : AppCompatActivity() {
 
