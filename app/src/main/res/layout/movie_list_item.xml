@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="wrap_content"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_marginTop="@dimen/dimen_8dp"
+                                             android:layout_marginBottom="8dp">
+
+    <ImageView
+            android:id="@+id/moviePoster"
+            android:layout_width="@dimen/dimen_120dp"
+            android:layout_height="@dimen/dimen_180dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@string/accessibility_movie_poster"/>
+
+    <TextView android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              app:layout_constraintEnd_toEndOf="parent"
+              tools:text="Movie title" app:layout_constraintStart_toEndOf="@+id/moviePoster"
+              android:layout_marginStart="@dimen/dimen_8dp"
+              android:layout_marginEnd="@dimen/dimen_8dp"
+              app:layout_constraintHorizontal_bias="0.096"
+              android:textStyle="bold"
+              app:layout_constraintTop_toTopOf="@id/moviePoster" android:layout_marginTop="32dp"
+              android:id="@+id/movieTitle"/>
+
+    <TextView android:layout_width="@dimen/dimen_0dp"
+              android:layout_height="wrap_content"
+              app:layout_constraintEnd_toEndOf="parent"
+              tools:text="Genres"
+              android:layout_marginEnd="@dimen/dimen_8dp"
+              android:layout_marginTop="@dimen/dimen_12dp" app:layout_constraintTop_toBottomOf="@+id/movieTitle"
+              android:id="@+id/movieGenres" app:layout_constraintStart_toStartOf="@+id/movieTitle"
+              app:layout_constraintHorizontal_bias="0.0"/>
+
+    <TextView android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              app:layout_constraintEnd_toEndOf="parent"
+              android:layout_marginEnd="@dimen/dimen_8dp"
+              tools:text="popularity score"
+              android:layout_marginTop="@dimen/dimen_16dp" app:layout_constraintTop_toBottomOf="@+id/movieGenres"
+              android:id="@+id/moviePopularityScore" app:layout_constraintStart_toStartOf="@+id/movieGenres"
+              app:layout_constraintHorizontal_bias="0.0"/>
+
+    <TextView android:id="@+id/movieReleaseYear"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              tools:text="release year"
+              app:layout_constraintTop_toBottomOf="@+id/moviePopularityScore" android:layout_marginTop="@dimen/dimen_16dp"
+              app:layout_constraintStart_toStartOf="@+id/moviePopularityScore"/>
+</android.support.constraint.ConstraintLayout>

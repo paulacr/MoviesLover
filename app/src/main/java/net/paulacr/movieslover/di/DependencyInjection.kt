@@ -4,6 +4,7 @@ import android.arch.persistence.room.Room
 import android.content.Context
 import android.content.SharedPreferences
 import net.paulacr.movieslover.data.MoviesDatabase
+import net.paulacr.movieslover.data.repository.GenresRepositoryImpl
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 import net.paulacr.movieslover.network.NetworkManager.generalApi
 import net.paulacr.movieslover.ui.movieslist.MoviesListViewModel
@@ -17,7 +18,7 @@ val appModule = module {
 }
 
 val moviesModule = module {
-    viewModel { MoviesListViewModel(androidApplication(), get()) }
+    viewModel { MoviesListViewModel(androidApplication(), get(), get()) }
 }
 
 val apiInterface = module {
@@ -30,6 +31,7 @@ val databaseModule = module {
 
 val repositoryModule = module {
     single { MoviesRepositoryImpl(get(), get(), get()) }
+    single { GenresRepositoryImpl(get(), get()) }
 }
 
 val moviesApp = listOf(appModule, databaseModule, moviesModule, apiInterface, repositoryModule)
