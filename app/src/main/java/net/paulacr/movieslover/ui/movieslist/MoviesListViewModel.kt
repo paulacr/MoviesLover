@@ -12,18 +12,21 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import net.paulacr.movieslover.data.model.Genre
-import net.paulacr.movieslover.data.model.Genres
 import net.paulacr.movieslover.data.model.MovieWithGenres
 import net.paulacr.movieslover.data.model.Movie
+import net.paulacr.movieslover.data.repository.GenresRepositoryImpl
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
+import net.paulacr.movieslover.livedata.LiveDataWithValue
 
-class MoviesListViewModel(app: Application, private val repository: MoviesRepositoryImpl) : AndroidViewModel(app),
+class MoviesListViewModel(app: Application, private val moviesRepository: MoviesRepositoryImpl, private val genresRepository: GenresRepositoryImpl) : AndroidViewModel(app),
     LifecycleObserver {
 
     private lateinit var moviesDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
     private var page: Int = 1
+
     var subject = BehaviorSubject.create<Unit>()
+    var moviesAction = LiveDataWithValue<List<MovieWithGenres>>()
 
     fun getPopularMovies() {
         subscribeSubject()
@@ -32,21 +35,21 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
     private fun subscribeSubject() {
         val moviesObservable = subject.startWith(Unit)
             .flatMap {
-                repository.getPopularMovies(getPage())
+                moviesRepository.getPopularMovies(page)
             }
 
-        val genresObservable: Observable<Genres> = repository.getGenres()
+        val genresObservable: Observable<List<Genre>> = genresRepository.getGenres()
 
         moviesDisposable = Observable.combineLatest(moviesObservable, genresObservable,
-            BiFunction { movies: List<Movie>, genres: Genres -> moviesWithGenres(movies, genres) })
+            BiFunction { movies: List<Movie>, genres: List<Genre> -> moviesWithGenres(movies, genres) })
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ moviesWithGenres ->
-                Log.i("Test 1", "test")
+                increasePageNumber()
+                moviesAction.actionOccuredPost(moviesWithGenres)
             }, { error ->
                 Log.e("Test error", "test", error)
             }, {
-                increasePageNumber()
             })
 
         compositeDisposable.add(moviesDisposable)
@@ -59,7 +62,7 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
      * @param genres list with all genres
      * @return MovieWithGenre
      */
-    private fun moviesWithGenres(movies: List<Movie>, genres: Genres): List<MovieWithGenres> {
+    private fun moviesWithGenres(movies: List<Movie>, genres: List<Genre>): List<MovieWithGenres> {
 
         val moviesWithGenresList = mutableListOf<MovieWithGenres>()
         val listOfGenres = mutableListOf<Genre>()
@@ -87,17 +90,13 @@ class MoviesListViewModel(app: Application, private val repository: MoviesReposi
      * @return
      */
     private fun filterGenresById(
-        genres: Genres,
+        genres: List<Genre>,
         id: String
     ): MutableList<Genre> {
-        val list = genres.genres.filter {
-            it.id == id
+        val list = genres.filter {
+            it.id.toString() == id
         }.toMutableList()
         return list
-    }
-
-    private fun getPage(): String {
-        return page.toString()
     }
 
     private fun increasePageNumber() {

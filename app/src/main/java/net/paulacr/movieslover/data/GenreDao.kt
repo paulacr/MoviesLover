@@ -6,20 +6,17 @@ import android.arch.persistence.room.Insert
 import android.arch.persistence.room.OnConflictStrategy
 import android.arch.persistence.room.Query
 import io.reactivex.Single
-import net.paulacr.movieslover.data.model.Movie
+import net.paulacr.movieslover.data.model.Genre
 
 @Dao
-interface MovieDao {
+interface GenreDao {
 
-    @Query("SELECT * FROM movie")
-    fun getAll(): Single<List<Movie>>
-
-    @Query("SELECT * FROM movie WHERE page = :page ORDER BY popularity DESC")
-    fun getMoviesByPage(page: Int): Single<List<Movie>>
+    @Query("SELECT * FROM genre")
+    fun getAll(): Single<List<Genre>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(movies: List<Movie>)
+    fun insertAll(movies: List<Genre>)
 
     @Delete
-    fun delete(movie: Movie)
+    fun delete(genre: Genre)
 }

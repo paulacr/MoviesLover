@@ -5,14 +5,13 @@ import android.util.Log
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import net.paulacr.movieslover.data.MoviesDatabase
-import net.paulacr.movieslover.data.model.Genres
 import net.paulacr.movieslover.data.model.Movie
 import net.paulacr.movieslover.network.ApiInterface
 
 class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sharedPreferences: SharedPreferences) :
     MoviesRepository {
 
-    override fun getPopularMovies(page: String): Observable<List<Movie>> {
+    override fun getPopularMovies(page: Int): Observable<List<Movie>> {
         if (false) {
             return getPopularMoviesFromAPI(page).subscribeOn(Schedulers.io())
         } else {
@@ -26,29 +25,30 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
         }
     }
 
-    override fun getPopularMoviesFromAPI(page: String): Observable<List<Movie>> {
-        return service.getPopularMovies(page = page).subscribeOn(Schedulers.io())
+    override fun getPopularMoviesFromAPI(page: Int): Observable<List<Movie>> {
+        return service.getPopularMovies(page = page.toString()).subscribeOn(Schedulers.io())
             .map {
                 it.results
             }.doOnNext {
+                it.forEach {
+                    it.page = page
+                }
                 db.movie().insertAll(it)
             }.doOnError {
                 Log.e("Error database", "msg: ", it)
             }
     }
 
-    override fun getPopularMoviesFromDB(page: String): Observable<List<Movie>> {
-        return db.movie().getAll().toObservable()
+    override fun getPopularMoviesFromDB(page: Int): Observable<List<Movie>> {
+        return db.movie().getMoviesByPage(page).doOnError {
+            Log.e("Error database", "msg: ", it)
+        }.toObservable()
     }
 
     override fun fetchMoviesBySearch(text: String): Observable<List<Movie>> {
         return service.getPopularMovies(page = "1").map {
             it.results
         }
-    }
-
-    override fun getGenres(): Observable<Genres> {
-        return service.getGenres()
     }
 
     private fun isExpired(): Boolean {
