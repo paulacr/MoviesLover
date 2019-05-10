@@ -20,6 +20,7 @@ import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 import net.paulacr.movieslover.livedata.LiveDataWithValue
 import net.paulacr.movieslover.util.MovieAndGenreUtil
 import net.paulacr.movieslover.util.PageUtil
+import java.util.concurrent.TimeUnit
 
 class MoviesListViewModel(
     app: Application,
@@ -30,10 +31,13 @@ class MoviesListViewModel(
 
     private lateinit var moviesDisposable: Disposable
     private lateinit var moviesSearchDisposable: Disposable
+    private lateinit var typeSearchDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
 
     var subject = BehaviorSubject.create<Unit>()
     var subjectSearch = BehaviorSubject.create<Unit>()
+    var subjectTypeSearch = BehaviorSubject.create<String>()
+
     var moviesAction = LiveDataWithValue<List<MovieWithGenres>>()
     var searchAction = LiveDataWithValue<List<MovieWithGenres>>()
     var loadingMoreItems = ObservableBoolean(false)
@@ -47,12 +51,16 @@ class MoviesListViewModel(
         subscribeSubject(getMoviesObservable(), getGenresObservable())
     }
 
-    fun refreshData() {
-        PageUtil.resetPage()
-//        subscribeSubject()
+    fun subscribeTypeSearchSubject() {
+        typeSearchDisposable = subjectTypeSearch.map { text -> text.trim() }
+            .debounce(400, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { text ->
+                searchMovies(text)
+            }
     }
 
-    fun searchMovies(text: String?) {
+    private fun searchMovies(text: String?) {
         PageUtil.resetPage()
         if (text.isNullOrEmpty()) {
             subject.onNext(Unit)
@@ -145,6 +153,10 @@ class MoviesListViewModel(
 
     fun searchMoreMovies() {
         subjectSearch.onNext(Unit)
+    }
+
+    fun getMoreMovies() {
+        subject.onNext(Unit)
     }
 
     override fun onCleared() {

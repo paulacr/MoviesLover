@@ -7,13 +7,9 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.SearchView
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
@@ -22,13 +18,12 @@ import net.paulacr.movieslover.ui.moviedetail.MovieDetailActivity
 import net.paulacr.movieslover.ui.moviedetail.MovieListener
 import net.paulacr.movieslover.util.InfiniteScrollManager
 import org.koin.android.viewmodel.ext.android.viewModel
-import java.util.concurrent.TimeUnit
 
 class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMore, MovieListener {
 
     private val viewModel: MoviesListViewModel by viewModel()
     private var adapter: MoviesListAdapter? = null
-    lateinit var searchView: SearchView
+    private var searchTypeIsActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,18 +79,16 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
     private fun setupPullToRefresh() {
         refresh.setOnRefreshListener {
             adapter = null
-            viewModel.refreshData()
             refresh.isRefreshing = false
         }
     }
 
     override fun onScrollMorePages(page: Int) {
-        if (searchView.isSubmitButtonEnabled) {
+        if (searchTypeIsActive) {
             viewModel.searchMoreMovies()
         } else {
-            viewModel.subject.onNext(Unit)
+            viewModel.getMoreMovies()
         }
-
     }
 
     override fun onItemClick(position: Int, movieWithGenres: MovieWithGenres) {
@@ -104,29 +97,27 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        searchView = menu?.findItem(R.id.search)?.actionView as SearchView
+        val searchView = menu?.findItem(R.id.search)?.actionView as SearchView
 
         // Set up the query listener that executes the search
-        val disposable = Observable.create(ObservableOnSubscribe<String> { subscriber ->
+        viewModel.subjectTypeSearch
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextChange(newText: String?): Boolean {
-                    subscriber.onNext(newText!!)
+                    viewModel.subjectTypeSearch.onNext(newText!!)
+                    adapter?.clearList()
+                    searchTypeIsActive = true
                     return false
                 }
 
                 override fun onQueryTextSubmit(query: String?): Boolean {
-                    subscriber.onNext(query!!)
+                    viewModel.subjectTypeSearch.onNext(query!!)
+                    adapter?.clearList()
+                    searchTypeIsActive = true
                     return false
                 }
             })
-        }).map { text -> text.trim() }
-            .debounce(400, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { text ->
-                adapter?.clearList()
-                viewModel.searchMovies(text)
-                Log.d("Search", "subscriber: $text")
-            }
+
+        viewModel.subscribeTypeSearchSubject()
         return super.onCreateOptionsMenu(menu)
     }
 

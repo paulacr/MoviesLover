@@ -93,7 +93,7 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     }
 
     override fun getMovieDetailFromAPI(movieId: Int): Observable<MovieDetail> {
-        return service.getMovieDetail(movieId).subscribeOn(Schedulers.io())
+        return service.getMovieDetail(movieId.toString()).subscribeOn(Schedulers.io())
             .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
             .doOnError {
                 Log.e("Error detail", "api", it)
