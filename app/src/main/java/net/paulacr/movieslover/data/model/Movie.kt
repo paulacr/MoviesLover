@@ -28,5 +28,6 @@ data class Movie(
 
     @SerializedName("original_language") val language: String,
 
+    @SerializedName("backdrop_path") val backdropPath: String,
     var page: Int
 ) : Parcelable

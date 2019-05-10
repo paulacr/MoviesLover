@@ -23,6 +23,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         setContentView(R.layout.activity_main)
 
         applyDataBinding()
+        setupPullToRefresh()
         viewModel.getPopularMovies()
 
         viewModel.moviesAction.observe(this) {
@@ -51,6 +52,14 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
     private fun applyDataBinding() {
         DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main).apply {
             activityViewModel = viewModel
+        }
+    }
+
+    private fun setupPullToRefresh() {
+        refresh.setOnRefreshListener {
+            adapter = null
+            viewModel.refreshData()
+            refresh.isRefreshing = false
         }
     }
 

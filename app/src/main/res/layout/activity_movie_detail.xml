@@ -42,7 +42,7 @@
                     android:id="@+id/movieBackdropDetail"/>
 
             <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     tools:text="Description"
                     android:text="@{activityViewModel.movieDescription}"

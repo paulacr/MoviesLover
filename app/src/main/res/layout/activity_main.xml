@@ -3,6 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+        <import type="android.view.View"/>
         <variable
                 name="activityViewModel"
                 type="net.paulacr.movieslover.ui.movieslist.MoviesListViewModel"/>
@@ -12,12 +13,41 @@
             android:layout_height="match_parent"
             tools:context=".ui.MainActivity">
 
-        <android.support.v7.widget.RecyclerView
-                android:id="@+id/rvMoviesList"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+        <ProgressBar
+                android:id="@+id/loadingEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="@{activityViewModel.loadingEmptyState? View.VISIBLE : View.GONE}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+                app:layout_constraintHorizontal_bias="0.54" app:layout_constraintTop_toTopOf="@+id/refresh"
+                android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"/>
 
-        </android.support.v7.widget.RecyclerView>
+
+        <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/refresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rvMoviesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <ProgressBar
+                android:id="@+id/loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:visibility="@{activityViewModel.loadingMoreItems? View.VISIBLE : View.GONE}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+                app:layout_constraintHorizontal_bias="0.509"/>
+
 
     </android.support.constraint.ConstraintLayout>
 
