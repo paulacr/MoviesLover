@@ -7,12 +7,14 @@ import android.arch.persistence.room.TypeConverters
 import android.content.Context
 import net.paulacr.movieslover.data.model.Genre
 import net.paulacr.movieslover.data.model.Movie
+import net.paulacr.movieslover.data.model.MovieDetail
 
-@Database(entities = [Movie::class, Genre::class], version = 1)
+@Database(entities = [Movie::class, Genre::class, MovieDetail::class], version = 1)
 @TypeConverters(Converter::class)
 abstract class MoviesDatabase : RoomDatabase() {
 
     abstract fun movie(): MovieDao
+    abstract fun movieDetail(): MovieDetailDao
     abstract fun genre(): GenreDao
 
     companion object {

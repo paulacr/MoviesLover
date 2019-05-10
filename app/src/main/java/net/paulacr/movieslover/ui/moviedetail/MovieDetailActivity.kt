@@ -8,33 +8,40 @@ import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_movie_detail.*
 import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
-import net.paulacr.movieslover.databinding.ActivityMainBinding
+import net.paulacr.movieslover.databinding.ActivityMovieDetailBinding
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class MovieDetailActivity : AppCompatActivity() {
+
+    private val viewModel: MovieDetailViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
-        getMovie()
-    }
+        applyDataBinding()
 
-    private fun getMovie() {
-        val movie = intent?.extras?.getParcelable<MovieWithGenres>(MOVIE_EXTRA)
-        movie?.let {
-            setViewData(movie)
+        val movieWithGenres = getMovieExtra()
+        movieWithGenres?.let {
+            viewModel.getMovieDetail(movieWithGenres)
+            observeActions()
         }
     }
 
-    private fun setViewData(movieWithGenre: MovieWithGenres) {
-        movieTitleDetail.text = movieWithGenre.movie.title
-        movieDescriptionDetail.text = movieWithGenre.movie.overview
-        movieRuntimeDetail.text = "x"
-        movieLinkDetail.text = "x"
+    private fun observeActions() {
+        viewModel.movieDetailAction.observe(this) {
+            // update view with additional info
+            movieRuntimeDetail.text = it.runtime
+            movieLinkDetail.text = it.homepage
+        }
+    }
+
+    private fun getMovieExtra(): MovieWithGenres? {
+        return intent?.extras?.getParcelable<MovieWithGenres>(MOVIE_EXTRA)
     }
 
     private fun applyDataBinding() {
-        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main).apply {
-//            activityViewModel = viewModel
+        DataBindingUtil.setContentView<ActivityMovieDetailBinding>(this, R.layout.activity_movie_detail).apply {
+            activityViewModel = viewModel
         }
     }
 
