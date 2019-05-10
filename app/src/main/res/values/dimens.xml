@@ -9,4 +9,7 @@
     <dimen name="dimen_180dp">180dp</dimen>
     <dimen name="dimen_0dp">0dp</dimen>
     <dimen name="dimen_12dp">12dp</dimen>
+    <dimen name="dimen_22sp">22sp</dimen>
+    <dimen name="dimen_4dp">4dp</dimen>
+    <dimen name="dimens_8dp">8dp</dimen>
 </resources>
