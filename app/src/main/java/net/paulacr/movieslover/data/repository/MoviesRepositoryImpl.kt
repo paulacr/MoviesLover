@@ -50,9 +50,12 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     }
 
     override fun fetchMoviesBySearch(text: String): Observable<List<Movie>> {
-        return service.getPopularMovies(page = "1").map {
-            it.results
-        }
+        return service.searchMovies(text).subscribeOn(Schedulers.io())
+            .map {
+                it.results
+            }.doOnError {
+                Log.e("Error search", "msg->", it)
+            }
     }
 
     override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {

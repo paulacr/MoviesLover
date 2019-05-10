@@ -22,11 +22,13 @@ class MoviesListViewModel(app: Application, private val moviesRepository: Movies
     LifecycleObserver {
 
     private lateinit var moviesDisposable: Disposable
+    private lateinit var moviesSearchDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
     private var page: Int = 1
 
     var subject = BehaviorSubject.create<Unit>()
     var moviesAction = LiveDataWithValue<List<MovieWithGenres>>()
+    var searchAction = LiveDataWithValue<List<MovieWithGenres>>()
 
     fun getPopularMovies() {
         subscribeSubject()
@@ -53,6 +55,24 @@ class MoviesListViewModel(app: Application, private val moviesRepository: Movies
             })
 
         compositeDisposable.add(moviesDisposable)
+    }
+
+    fun searchMovies(text: String) {
+        val moviesObservable = moviesRepository.fetchMoviesBySearch(text)
+            .subscribeOn(Schedulers.io())
+
+        val genresObservable: Observable<List<Genre>> = genresRepository.getGenres()
+
+        moviesSearchDisposable = Observable.combineLatest(moviesObservable, genresObservable,
+            BiFunction { movies: List<Movie>, genres: List<Genre> -> moviesWithGenres(movies, genres) })
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ moviesWithGenres ->
+                searchAction.actionOccuredPost(moviesWithGenres)
+            }, { error ->
+                Log.e("Test error", "test", error)
+            }, {
+            })
     }
 
     override fun onCleared() {

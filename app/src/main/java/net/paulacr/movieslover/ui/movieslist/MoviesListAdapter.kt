@@ -37,6 +37,12 @@ class MoviesListAdapter(moviesList: List<MovieWithGenres>, val listener: MovieLi
         this.notifyItemRangeInserted(itemCount, moviesWithGenres.size - 1)
     }
 
+    fun showItemsBySearch(moviesWithGenres: List<MovieWithGenres>) {
+        moviesList.clear()
+        moviesList.addAll(moviesWithGenres)
+        this.notifyDataSetChanged()
+    }
+
     class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val moviePoster: ImageView = itemView.findViewById(R.id.moviePoster)
