@@ -58,7 +58,7 @@ class MoviesListAdapter(moviesList: List<MovieWithGenres>, val listener: MovieLi
                 .into(moviePoster)
 
             title.text = movie.movie.title
-            popularity.text = movie.movie.popularity.toString()
+            popularity.text = itemView.context.getString(R.string.popularity, movie.movie.popularity.toString())
             releaseYear.text = itemView.context.getString(R.string.release_date, movie.movie.releaseDate)
             genres.text = movie.genresList()
         }

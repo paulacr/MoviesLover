@@ -14,6 +14,7 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
 
     override fun getPopularMovies(page: Int): Observable<List<Movie>> {
         if (false) {
+            clearDatabase()
             return getPopularMoviesFromAPI(page).subscribeOn(Schedulers.io())
         } else {
             return getPopularMoviesFromDB(page).subscribeOn(Schedulers.io()).flatMap {
@@ -49,13 +50,26 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
         }.toObservable()
     }
 
-    override fun fetchMoviesBySearch(text: String): Observable<List<Movie>> {
-        return service.searchMovies(text).subscribeOn(Schedulers.io())
-            .map {
-                it.results
-            }.doOnError {
-                Log.e("Error search", "msg->", it)
+    override fun fetchMoviesBySearch(text: String, page: Int): Observable<List<Movie>> {
+        return db.movie().getMoviesByName(text)
+            .subscribeOn(Schedulers.io())
+            .toObservable().doOnNext {
+                Log.i("Log movie search ", "database $it")
+            }.switchIfEmpty {
+                service.searchMovies(text, page = page).map {
+                    it.results
+                }
+            }.flatMap {
+                service.searchMovies(text, page = page).map {
+                    it.results
+                }
             }
+//        service.searchMovies(text).subscribeOn(Schedulers.io())
+//            .map {
+//                it.results
+//            }.doOnError {
+//                Log.e("Error search", "msg->", it)
+//            }
     }
 
     override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {
@@ -87,6 +101,10 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
             }.doOnError {
                 Log.e("Error database", "msg: ", it)
             }
+    }
+
+    private fun clearDatabase() {
+        db.clearAllTables()
     }
 
     private fun isExpired(): Boolean {

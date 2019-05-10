@@ -22,7 +22,6 @@ class MovieDetailViewModel(app: Application, val moviesRepository: MoviesReposit
     private lateinit var moviesDetailDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
 
-    var moviesWithGenresAction = LiveDataWithValue<MovieWithGenres>()
     var movieDetailAction = LiveDataWithValue<MovieDetail>()
     val movieTitle = ObservableField<String>()
     val movieDescription = ObservableField<String>()

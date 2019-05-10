@@ -29,6 +29,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         setContentView(R.layout.activity_main)
 
         applyDataBinding()
+        setupPullToRefresh()
         viewModel.getPopularMovies()
 
         viewModel.moviesAction.observe(this) {
@@ -66,6 +67,14 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         }
     }
 
+    private fun setupPullToRefresh() {
+        refresh.setOnRefreshListener {
+            adapter = null
+            viewModel.refreshData()
+            refresh.isRefreshing = false
+        }
+    }
+
     override fun onScrollMorePages(page: Int) {
         viewModel.subject.onNext(Unit)
     }
@@ -91,7 +100,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
                     return false
                 }
             })
-        }).map { text -> text.toLowerCase().trim() }
+        }).map { text -> text.trim() }
             .debounce(400, TimeUnit.MILLISECONDS)
             .subscribe { text ->
                 viewModel.searchMovies(text)

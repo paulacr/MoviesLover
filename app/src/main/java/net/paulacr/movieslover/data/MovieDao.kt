@@ -17,9 +17,15 @@ interface MovieDao {
     @Query("SELECT * FROM movie WHERE page = :page ORDER BY popularity DESC")
     fun getMoviesByPage(page: Int): Single<List<Movie>>
 
+    @Query("SELECT * FROM movie WHERE title LIKE  '%' || :name || '%' ORDER BY popularity DESC")
+    fun getMoviesByName(name: String): Single<List<Movie>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(movies: List<Movie>)
 
     @Delete
     fun delete(movie: Movie)
+
+    @Query("DELETE FROM movie")
+    fun deleteAll()
 }

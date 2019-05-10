@@ -19,4 +19,7 @@ interface MovieDetailDao {
 
     @Delete
     fun delete(movie: MovieDetail)
+
+    @Query("DELETE FROM movie_detail")
+    fun deleteAll()
 }
