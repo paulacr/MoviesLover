@@ -55,6 +55,11 @@ class MoviesListViewModel(app: Application, private val moviesRepository: Movies
         compositeDisposable.add(moviesDisposable)
     }
 
+    override fun onCleared() {
+        compositeDisposable.clear()
+        super.onCleared()
+    }
+
     /**
      * Combine Movies with Genres into a Wrapper
      *

@@ -26,5 +26,7 @@ data class Movie(
 
     @SerializedName("overview") val overview: String,
 
+    @SerializedName("original_language") val language: String,
+
     var page: Int
 ) : Parcelable

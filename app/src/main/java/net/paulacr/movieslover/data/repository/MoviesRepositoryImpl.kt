@@ -6,6 +6,7 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import net.paulacr.movieslover.data.MoviesDatabase
 import net.paulacr.movieslover.data.model.Movie
+import net.paulacr.movieslover.data.model.MovieDetail
 import net.paulacr.movieslover.network.ApiInterface
 
 class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sharedPreferences: SharedPreferences) :
@@ -27,6 +28,9 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
 
     override fun getPopularMoviesFromAPI(page: Int): Observable<List<Movie>> {
         return service.getPopularMovies(page = page.toString()).subscribeOn(Schedulers.io())
+            .doOnError {
+                Log.e("Error movies", "api", it)
+            }
             .map {
                 it.results
             }.doOnNext {
@@ -49,6 +53,37 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
         return service.getPopularMovies(page = "1").map {
             it.results
         }
+    }
+
+    override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {
+        return getMovieDetailFromDB(movieId)
+            .switchIfEmpty {
+                getMovieDetailFromAPI(movieId)
+            }
+            .flatMap {
+                Observable.just(it)
+            }.doOnError {
+                getMovieDetailFromAPI(movieId)
+            }
+    }
+
+    override fun getMovieDetailFromDB(movieId: Int): Observable<MovieDetail> {
+        return db.movieDetail().getMovieDetail(movieId).toObservable().subscribeOn(Schedulers.io())
+            .doOnError {
+                Log.e("Error database", "msg: ", it)
+            }
+    }
+
+    override fun getMovieDetailFromAPI(movieId: Int): Observable<MovieDetail> {
+        return service.getMovieDetail(movieId).subscribeOn(Schedulers.io())
+            .doOnError {
+                Log.e("Error detail", "api", it)
+            }
+            .doOnNext {
+                db.movieDetail().saveMovieDetail(it)
+            }.doOnError {
+                Log.e("Error database", "msg: ", it)
+            }
     }
 
     private fun isExpired(): Boolean {

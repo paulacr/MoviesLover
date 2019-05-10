@@ -7,6 +7,7 @@ import net.paulacr.movieslover.data.MoviesDatabase
 import net.paulacr.movieslover.data.repository.GenresRepositoryImpl
 import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 import net.paulacr.movieslover.network.NetworkManager.generalApi
+import net.paulacr.movieslover.ui.moviedetail.MovieDetailViewModel
 import net.paulacr.movieslover.ui.movieslist.MoviesListViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -19,6 +20,7 @@ val appModule = module {
 
 val moviesModule = module {
     viewModel { MoviesListViewModel(androidApplication(), get(), get()) }
+    viewModel { MovieDetailViewModel(androidApplication(), get()) }
 }
 
 val apiInterface = module {
