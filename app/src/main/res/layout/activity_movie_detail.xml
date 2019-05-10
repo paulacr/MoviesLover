@@ -22,6 +22,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="Movie title"
+                    android:textSize="@dimen/dimen_22sp"
+                    android:textStyle="bold"
                     android:text="@{activityViewModel.movieTitle}"
                     app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="@dimen/dimen_8dp"
                     app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="@dimen/dimen_8dp"
@@ -50,7 +52,8 @@
                     android:layout_marginStart="@dimen/dimen_16dp"
                     android:layout_marginTop="@dimen/dimen_40dp"
                     app:layout_constraintTop_toBottomOf="@+id/movieBackdropDetail"
-                    android:id="@+id/movieDescriptionDetail"/>
+                    android:id="@+id/movieDescriptionDetail" app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="8dp"/>
 
             <TextView
                     android:layout_width="wrap_content"

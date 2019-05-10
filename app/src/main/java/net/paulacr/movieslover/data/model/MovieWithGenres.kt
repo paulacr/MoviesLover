@@ -15,6 +15,6 @@ data class MovieWithGenres(val movie: Movie, val genres: List<Genre>) : Parcelab
     val backdropPath: String? = BuildConfig.BASE_IMGAGE_URL.plus(movie.backdropPath)
 
     fun genresList(): String {
-        return "genres: ".plus(genres.map { it.name }.joinToString(separator = ";"))
+        return "genres: ".plus(genres.map { it.name }.joinToString(separator = " ; "))
     }
 }
