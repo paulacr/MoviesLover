@@ -8,6 +8,7 @@ import net.paulacr.movieslover.data.MoviesDatabase
 import net.paulacr.movieslover.data.model.Movie
 import net.paulacr.movieslover.data.model.MovieDetail
 import net.paulacr.movieslover.network.ApiInterface
+import java.util.concurrent.TimeUnit
 
 class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sharedPreferences: SharedPreferences) :
     MoviesRepository {
@@ -28,7 +29,9 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     }
 
     override fun getPopularMoviesFromAPI(page: Int): Observable<List<Movie>> {
-        return service.getPopularMovies(page = page.toString()).subscribeOn(Schedulers.io())
+        return service.getPopularMovies(page = page.toString())
+            .subscribeOn(Schedulers.io())
+            .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
             .doOnError {
                 Log.e("Error movies", "api", it)
             }
@@ -50,14 +53,28 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
         }.toObservable()
     }
 
-    override fun fetchMoviesBySearch(text: String): Observable<List<Movie>> {
-        return service.getPopularMovies(page = "1").map {
-            it.results
-        }
+    override fun fetchMoviesBySearch(text: String, page: Int): Observable<List<Movie>> {
+        return db.movie().getMoviesByName(text)
+            .toObservable()
+            .flatMap { localResult ->
+                if (localResult.isEmpty()) {
+                    service.searchMovies(text, page = page)
+                        .map {
+                            it.results
+                        }.doOnNext {
+                            it.forEach {
+                                it.page = page
+                            }
+                        }
+                } else {
+                    Observable.just(localResult)
+                }
+            }
     }
 
     override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {
         return getMovieDetailFromDB(movieId)
+            .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
             .switchIfEmpty {
                 getMovieDetailFromAPI(movieId)
             }
@@ -76,7 +93,8 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     }
 
     override fun getMovieDetailFromAPI(movieId: Int): Observable<MovieDetail> {
-        return service.getMovieDetail(movieId).subscribeOn(Schedulers.io())
+        return service.getMovieDetail(movieId.toString()).subscribeOn(Schedulers.io())
+            .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
             .doOnError {
                 Log.e("Error detail", "api", it)
             }
@@ -97,5 +115,6 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
 
     companion object {
         private const val EXPIRATION_TIME = 86400000
+        private const val TIME_OUT = 400.toLong()
     }
 }

@@ -20,6 +20,7 @@ import net.paulacr.movieslover.data.repository.MoviesRepositoryImpl
 import net.paulacr.movieslover.livedata.LiveDataWithValue
 import net.paulacr.movieslover.util.MovieAndGenreUtil
 import net.paulacr.movieslover.util.PageUtil
+import java.util.concurrent.TimeUnit
 
 class MoviesListViewModel(
     app: Application,
@@ -29,10 +30,16 @@ class MoviesListViewModel(
     LifecycleObserver {
 
     private lateinit var moviesDisposable: Disposable
+    private lateinit var moviesSearchDisposable: Disposable
+    private lateinit var typeSearchDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
 
     var subject = BehaviorSubject.create<Unit>()
+    var subjectSearch = BehaviorSubject.create<Unit>()
+    var subjectTypeSearch = BehaviorSubject.create<String>()
+
     var moviesAction = LiveDataWithValue<List<MovieWithGenres>>()
+    var searchAction = LiveDataWithValue<List<MovieWithGenres>>()
     var loadingMoreItems = ObservableBoolean(false)
     var loadingEmptyState = ObservableBoolean(true)
 
@@ -41,27 +48,46 @@ class MoviesListViewModel(
     }
 
     fun getPopularMovies() {
-        subscribeSubject()
+        subscribeSubject(getMoviesObservable(), getGenresObservable())
     }
 
-    fun refreshData() {
-        PageUtil.resetPage()
-        subscribeSubject()
-    }
-
-    private fun subscribeSubject() {
-        val moviesObservable = subject.startWith(Unit)
-            .flatMap {
-                showLoadingMoreItems()
-                moviesRepository.getPopularMovies(PageUtil.getCurrentPage())
+    fun subscribeTypeSearchSubject() {
+        typeSearchDisposable = subjectTypeSearch.map { text -> text.trim() }
+            .debounce(400, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { text ->
+                searchMovies(text)
             }
+    }
 
-        val genresObservable: Observable<List<Genre>> = genresRepository.getGenres()
+    private fun searchMovies(text: String?) {
+        PageUtil.resetPage()
+        if (text.isNullOrEmpty()) {
+            subject.onNext(Unit)
+            // get popular movies when search is empty and show in the list
+        } else {
+            subscribeSubjectSearch(getMoviesSearchObservable(text), getGenresObservable())
+        }
+    }
 
-        moviesDisposable = Observable.combineLatest(moviesObservable, genresObservable,
-            BiFunction { movies: List<Movie>, genres: List<Genre> -> MovieAndGenreUtil.moviesWithGenres(movies, genres) })
+    private fun movieWithGenreObservable(
+        moviesObservable: Observable<List<Movie>>,
+        genresObservable: Observable<List<Genre>>
+    ): Observable<List<MovieWithGenres>> {
+        return Observable.combineLatest(moviesObservable, genresObservable,
+            BiFunction { movies: List<Movie>, genres: List<Genre> ->
+                MovieAndGenreUtil.moviesWithGenres(
+                    movies,
+                    genres
+                )
+            })
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun subscribeSubject(moviesObservable: Observable<List<Movie>>, genresObservable: Observable<List<Genre>>) {
+
+        moviesDisposable = movieWithGenreObservable(moviesObservable, genresObservable)
             .subscribe({ moviesWithGenres ->
                 loadingMoreItems.set(false)
                 loadingEmptyState.set(false)
@@ -75,10 +101,62 @@ class MoviesListViewModel(
         compositeDisposable.add(moviesDisposable)
     }
 
+    private fun subscribeSubjectSearch(
+        moviesObservable: Observable<List<Movie>>,
+        genresObservable: Observable<List<Genre>>
+    ) {
+
+        moviesSearchDisposable = movieWithGenreObservable(moviesObservable, genresObservable)
+            .subscribe({ moviesWithGenres ->
+                loadingMoreItems.set(false)
+                loadingEmptyState.set(false)
+                PageUtil.increasePageNumber()
+                moviesWithGenres.distinctBy {
+                    it.movie.title
+                }
+                // show items on list
+                searchAction.actionOccuredPost(moviesWithGenres)
+            }, { error ->
+                Log.e("Test error", "test", error)
+            }, {
+            })
+        compositeDisposable.add(moviesDisposable)
+    }
+
+    // Observables
+    private fun getMoviesObservable(): Observable<List<Movie>> {
+        return subject.startWith(Unit)
+            .subscribeOn(Schedulers.io())
+            .flatMap {
+                showLoadingMoreItems()
+                moviesRepository.getPopularMovies(PageUtil.getCurrentPage())
+            }
+    }
+
+    private fun getMoviesSearchObservable(text: String): Observable<List<Movie>> {
+        return subject.startWith(Unit)
+            .flatMap {
+                showLoadingMoreItems()
+                moviesRepository.fetchMoviesBySearch(text, PageUtil.getCurrentPage())
+            }
+    }
+
+    private fun getGenresObservable(): Observable<List<Genre>> {
+        return genresRepository.getGenres()
+    }
+
     private fun showLoadingMoreItems() {
-        if (PageUtil.getCurrentPage() > 1) {
+        if (PageUtil.getCurrentPage() > PageUtil.INITIAL_PAGE) {
             loadingMoreItems.set(true)
         }
+    }
+
+    fun searchMoreMovies() {
+        subjectSearch.onNext(Unit)
+    }
+
+    fun getMoreMovies() {
+        subject.onNext(Unit)
     }
 
     override fun onCleared() {

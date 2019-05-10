@@ -15,12 +15,15 @@ interface ApiInterface {
     fun getPopularMovies(@Query("api_key") apiKey: String? = BuildConfig.API_KEY, @Query("language") language: String? = DEFAULT_LANGUAGE, @Query("page") page: String?): Observable<MoviesResult>
 
     @GET("movie/{movie_id}")
-    fun getMovieDetail(@Path("movie_id") movieId: Int, @Query("api_key") apiKey: String? = BuildConfig.API_KEY, @Query("language") language: String? = DEFAULT_LANGUAGE): Observable<MovieDetail>
+    fun getMovieDetail(@Path("movie_id") movieId: String, @Query("api_key") apiKey: String? = BuildConfig.API_KEY, @Query("language") language: String? = DEFAULT_LANGUAGE): Observable<MovieDetail>
+
+    @GET("search/movie")
+    fun searchMovies(@Query("query") query: String, @Query("api_key") apiKey: String? = BuildConfig.API_KEY, @Query("language") language: String? = DEFAULT_LANGUAGE, @Query("page") page: Int): Observable<MoviesResult>
 
     @GET("genre/movie/list")
     fun getGenres(@Query("api_key") apiKey: String? = BuildConfig.API_KEY, @Query("language") language: String? = DEFAULT_LANGUAGE): Observable<Genres>
 
     companion object {
-        private const val DEFAULT_LANGUAGE = "en"
+        private const val DEFAULT_LANGUAGE = "en-US"
     }
 }

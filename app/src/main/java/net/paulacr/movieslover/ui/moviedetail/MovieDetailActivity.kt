@@ -30,9 +30,11 @@ class MovieDetailActivity : AppCompatActivity() {
     }
 
     private fun setBackdropImage(backdropPath: String?) {
-        Glide.with(this).load(backdropPath)
-            .placeholder(R.mipmap.ic_launcher)
-            .into(movieBackdropDetail)
+        backdropPath?.let {
+            Glide.with(this).load(backdropPath)
+                .placeholder(R.mipmap.ic_launcher)
+                .into(movieBackdropDetail)
+        }
     }
 
     private fun observeActions() {

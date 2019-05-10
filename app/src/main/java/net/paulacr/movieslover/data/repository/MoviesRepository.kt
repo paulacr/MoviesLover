@@ -12,7 +12,7 @@ interface MoviesRepository {
 
     fun getPopularMoviesFromAPI(page: Int): Observable<List<Movie>>
 
-    fun fetchMoviesBySearch(text: String): Observable<List<Movie>>
+    fun fetchMoviesBySearch(text: String, page: Int): Observable<List<Movie>>
 
     fun getMovieDetail(movieId: Int): Observable<MovieDetail>
 
