@@ -2,7 +2,8 @@ package net.paulacr.movieslover.util
 
 object PageUtil {
 
-    private var page = 1
+    const val INITIAL_PAGE = 1
+    private var page = INITIAL_PAGE
 
     fun increasePageNumber() {
         page++

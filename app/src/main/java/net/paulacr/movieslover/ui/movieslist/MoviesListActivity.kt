@@ -1,14 +1,19 @@
 package net.paulacr.movieslover.ui.movieslist
 
+import android.content.Context
 import android.databinding.DataBindingUtil
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.SearchView
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
@@ -23,6 +28,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     private val viewModel: MoviesListViewModel by viewModel()
     private var adapter: MoviesListAdapter? = null
+    lateinit var searchView: SearchView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +36,16 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
         applyDataBinding()
         setupPullToRefresh()
-        viewModel.getPopularMovies()
+        observeActions()
 
+        if (isInternetAvailable()) {
+            viewModel.getPopularMovies()
+        } else {
+            showRetryButton()
+        }
+    }
+
+    private fun observeActions() {
         viewModel.moviesAction.observe(this) {
             if (adapter == null) {
                 setupRecyclerView(it)
@@ -76,7 +90,12 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
     }
 
     override fun onScrollMorePages(page: Int) {
-        viewModel.subject.onNext(Unit)
+        if (searchView.isSubmitButtonEnabled) {
+            viewModel.searchMoreMovies()
+        } else {
+            viewModel.subject.onNext(Unit)
+        }
+
     }
 
     override fun onItemClick(position: Int, movieWithGenres: MovieWithGenres) {
@@ -85,7 +104,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        val searchView = menu?.findItem(R.id.search)?.actionView as SearchView
+        searchView = menu?.findItem(R.id.search)?.actionView as SearchView
 
         // Set up the query listener that executes the search
         val disposable = Observable.create(ObservableOnSubscribe<String> { subscriber ->
@@ -102,11 +121,25 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
             })
         }).map { text -> text.trim() }
             .debounce(400, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe { text ->
+                adapter?.clearList()
                 viewModel.searchMovies(text)
                 Log.d("Search", "subscriber: $text")
             }
-
         return super.onCreateOptionsMenu(menu)
+    }
+
+    private fun isInternetAvailable(): Boolean {
+        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return connectivityManager.activeNetworkInfo != null && connectivityManager.activeNetworkInfo.isConnected
+    }
+
+    private fun showRetryButton() {
+        Snackbar.make(rvMoviesList, "Internet is out", Snackbar.LENGTH_INDEFINITE)
+            .setAction("RETRY", View.OnClickListener {
+                viewModel.getPopularMovies()
+            })
+            .show()
     }
 }

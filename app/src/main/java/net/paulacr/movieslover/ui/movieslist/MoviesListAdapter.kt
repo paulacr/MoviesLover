@@ -33,14 +33,25 @@ class MoviesListAdapter(moviesList: List<MovieWithGenres>, val listener: MovieLi
     }
 
     fun updateItems(moviesWithGenres: List<MovieWithGenres>) {
+        moviesWithGenres.sortedBy {
+            it.movie.popularity
+        }
         moviesList.addAll(moviesWithGenres)
         this.notifyItemRangeInserted(itemCount, moviesWithGenres.size - 1)
     }
 
-    fun showItemsBySearch(moviesWithGenres: List<MovieWithGenres>) {
+    fun clearList() {
         moviesList.clear()
+        notifyDataSetChanged()
+    }
+
+    fun showItemsBySearch(moviesWithGenres: List<MovieWithGenres>) {
+        val page = moviesWithGenres.last().movie.page
+        if (page == 1) {
+            moviesList.clear()
+        }
         moviesList.addAll(moviesWithGenres)
-        this.notifyDataSetChanged()
+        notifyDataSetChanged()
     }
 
     class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
