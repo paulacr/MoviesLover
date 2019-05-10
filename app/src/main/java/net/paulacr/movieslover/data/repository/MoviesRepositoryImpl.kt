@@ -14,6 +14,7 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
 
     override fun getPopularMovies(page: Int): Observable<List<Movie>> {
         if (false) {
+            clearDatabase()
             return getPopularMoviesFromAPI(page).subscribeOn(Schedulers.io())
         } else {
             return getPopularMoviesFromDB(page).subscribeOn(Schedulers.io()).flatMap {
@@ -84,6 +85,10 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
             }.doOnError {
                 Log.e("Error database", "msg: ", it)
             }
+    }
+
+    private fun clearDatabase() {
+        db.clearAllTables()
     }
 
     private fun isExpired(): Boolean {
