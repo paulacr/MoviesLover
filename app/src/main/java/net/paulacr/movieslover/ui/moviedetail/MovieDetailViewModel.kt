@@ -5,7 +5,6 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LifecycleObserver
 import android.databinding.ObservableBoolean
 import android.databinding.ObservableField
-import android.support.v4.text.HtmlCompat
 import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -36,19 +35,17 @@ class MovieDetailViewModel(app: Application, val moviesRepository: MoviesReposit
         moviesDetailDisposable = moviesRepository.getMovieDetail(id)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnError {
-                Log.e("Log error", "msg: ", it)
-            }
-            .subscribe {
+            .subscribe({
                 showAdditionalInfo.set(true)
                 setAdditionalData(it)
-            }
+            }, {
+                Log.e("Error movie detail", "->", it)
+            })
         compositeDisposable.add(moviesDetailDisposable)
     }
 
     private fun setAdditionalData(movieDetail: MovieDetail) {
-        movieRuntime.set("Runtime: ${movieDetail.runtime}")
-        movieLink.set(HtmlCompat.fromHtml("Link: ${movieDetail.homepage}", HtmlCompat.FROM_HTML_MODE_LEGACY).toString())
+        movieDetailAction.actionOccuredPost(movieDetail)
     }
 
     private fun setPreviousData(movieWithGenres: MovieWithGenres) {

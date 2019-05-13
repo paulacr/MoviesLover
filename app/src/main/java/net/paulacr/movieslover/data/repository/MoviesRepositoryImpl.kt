@@ -14,7 +14,7 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     MoviesRepository {
 
     override fun getPopularMovies(page: Int): Observable<List<Movie>> {
-        if (false) {
+        if (TIME) {
             clearDatabase()
             return getPopularMoviesFromAPI(page).subscribeOn(Schedulers.io())
         } else {
@@ -75,14 +75,8 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {
         return getMovieDetailFromDB(movieId)
             .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
-            .switchIfEmpty {
-                getMovieDetailFromAPI(movieId)
-            }
-            .flatMap {
-                Observable.just(it)
-            }.doOnError {
-                getMovieDetailFromAPI(movieId)
-            }
+            .switchIfEmpty(getMovieDetailFromAPI(movieId))
+            .onErrorResumeNext(getMovieDetailFromAPI(movieId))
     }
 
     override fun getMovieDetailFromDB(movieId: Int): Observable<MovieDetail> {
@@ -93,7 +87,7 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
     }
 
     override fun getMovieDetailFromAPI(movieId: Int): Observable<MovieDetail> {
-        return service.getMovieDetail(movieId.toString()).subscribeOn(Schedulers.io())
+        return service.getMovieDetail(movieId)
             .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
             .doOnError {
                 Log.e("Error detail", "api", it)
@@ -109,12 +103,9 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
         db.clearAllTables()
     }
 
-    private fun isExpired(): Boolean {
-        return System.currentTimeMillis() < (System.currentTimeMillis() - EXPIRATION_TIME)
-    }
+    private val TIME = false
 
     companion object {
-        private const val EXPIRATION_TIME = 86400000
         private const val TIME_OUT = 400.toLong()
     }
 }

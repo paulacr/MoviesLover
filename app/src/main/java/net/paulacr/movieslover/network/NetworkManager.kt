@@ -12,7 +12,7 @@ object NetworkManager {
 
     fun getBuilder(): Retrofit {
         val loggingInterceptor = HttpLoggingInterceptor()
-        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.HEADERS
 
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
