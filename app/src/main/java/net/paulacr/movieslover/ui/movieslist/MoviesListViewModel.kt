@@ -30,7 +30,6 @@ class MoviesListViewModel(
     LifecycleObserver {
 
     private lateinit var moviesDisposable: Disposable
-    private lateinit var moviesSearchDisposable: Disposable
     private lateinit var typeSearchDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
 
@@ -51,22 +50,38 @@ class MoviesListViewModel(
         subscribeSubject(getMoviesObservable(), getGenresObservable())
     }
 
+    private fun createCombination(searchText: String): Observable<List<MovieWithGenres>>? {
+        return Observable.combineLatest(getMoviesSearchObservable(searchText), getGenresObservable(),
+            BiFunction { movies: List<Movie>, genres: List<Genre> ->
+                MovieAndGenreUtil.moviesWithGenres(
+                    movies,
+                    genres
+                )
+            })
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
     fun subscribeTypeSearchSubject() {
-        typeSearchDisposable = subjectTypeSearch.map { text -> text.trim() }
+        typeSearchDisposable = subjectTypeSearch
+            .map { text -> text.trim() }
             .debounce(400, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { text ->
-                searchMovies(text)
+            .flatMap {
+                createCombination(it)
+            }
+            .subscribe { movieWithGenresList ->
+                onMoviesResult(movieWithGenresList)
+                searchAction.actionOccuredPost(movieWithGenresList)
             }
     }
 
-    private fun searchMovies(text: String?) {
-        PageUtil.resetPage()
-        if (text.isNullOrEmpty()) {
-            subject.onNext(Unit)
-            // get popular movies when search is empty and show in the list
-        } else {
-            subscribeSubjectSearch(getMoviesSearchObservable(text), getGenresObservable())
+    private fun onMoviesResult(moviesWithGenres: List<MovieWithGenres>) {
+        loadingMoreItems.set(false)
+        loadingEmptyState.set(false)
+        PageUtil.increasePageNumber()
+        moviesWithGenres.distinctBy {
+            it.movie.title
         }
     }
 
@@ -89,37 +104,13 @@ class MoviesListViewModel(
 
         moviesDisposable = movieWithGenreObservable(moviesObservable, genresObservable)
             .subscribe({ moviesWithGenres ->
-                loadingMoreItems.set(false)
-                loadingEmptyState.set(false)
-                PageUtil.increasePageNumber()
+                onMoviesResult(moviesWithGenres)
                 moviesAction.actionOccuredPost(moviesWithGenres)
             }, { error ->
                 Log.e("Test error", "test", error)
             }, {
             })
 
-        compositeDisposable.add(moviesDisposable)
-    }
-
-    private fun subscribeSubjectSearch(
-        moviesObservable: Observable<List<Movie>>,
-        genresObservable: Observable<List<Genre>>
-    ) {
-
-        moviesSearchDisposable = movieWithGenreObservable(moviesObservable, genresObservable)
-            .subscribe({ moviesWithGenres ->
-                loadingMoreItems.set(false)
-                loadingEmptyState.set(false)
-                PageUtil.increasePageNumber()
-                moviesWithGenres.distinctBy {
-                    it.movie.title
-                }
-                // show items on list
-                searchAction.actionOccuredPost(moviesWithGenres)
-            }, { error ->
-                Log.e("Test error", "test", error)
-            }, {
-            })
         compositeDisposable.add(moviesDisposable)
     }
 
@@ -134,10 +125,10 @@ class MoviesListViewModel(
     }
 
     private fun getMoviesSearchObservable(text: String): Observable<List<Movie>> {
-        return subject.startWith(Unit)
+        return subjectSearch.startWith(Unit)
             .flatMap {
                 showLoadingMoreItems()
-                moviesRepository.fetchMoviesBySearch(text, PageUtil.getCurrentPage())
+                moviesRepository.fetchMoviesBySearch(text, PageUtil.getCurrentPage()).subscribeOn(Schedulers.io())
             }
     }
 
@@ -151,8 +142,8 @@ class MoviesListViewModel(
         }
     }
 
-    fun searchMoreMovies() {
-        subjectSearch.onNext(Unit)
+    fun searchMoreMovies(text: String) {
+        subjectTypeSearch.onNext(text)
     }
 
     fun getMoreMovies() {

@@ -6,7 +6,6 @@ import android.support.v7.widget.RecyclerView
 class InfiniteScrollManager(private val linearLayoutManager: LinearLayoutManager) : RecyclerView.OnScrollListener() {
 
     private var previousTotal = 0
-    private var loading = true
     private var currentPage = 1
     private lateinit var listener: OnScrollMore
 
@@ -26,16 +25,14 @@ class InfiniteScrollManager(private val linearLayoutManager: LinearLayoutManager
         val firstVisibleItem = linearLayoutManager.findFirstVisibleItemPosition()
 
         if (totalItemCount > previousTotal) {
-            loading = false
             previousTotal = totalItemCount
         }
 
         val visibleThreshold = 5
-        if (!loading && (totalItemCount - visibleItemCount)
+        if ((totalItemCount - visibleItemCount)
             <= (firstVisibleItem + visibleThreshold)) {
             currentPage++
             listener.onScrollMorePages(currentPage)
-            loading = true
         }
     }
 }
