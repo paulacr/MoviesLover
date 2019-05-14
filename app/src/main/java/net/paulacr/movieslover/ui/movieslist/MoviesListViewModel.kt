@@ -159,6 +159,11 @@ class MoviesListViewModel(
         subject.onNext(Unit)
     }
 
+    fun resetMoviesList() {
+        PageUtil.resetPage()
+        subject.onNext(Unit)
+    }
+
     override fun onCleared() {
         compositeDisposable.clear()
         super.onCleared()
