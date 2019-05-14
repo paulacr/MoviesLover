@@ -8,6 +8,7 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
 import kotlinx.android.synthetic.main.activity_main.*
@@ -97,25 +98,42 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        val searchView = menu?.findItem(R.id.search)?.actionView as SearchView
+        val searchItem = menu?.findItem(R.id.search)
+        val searchView = searchItem?.actionView as SearchView
 
         // Set up the query listener that executes the search
-        viewModel.subjectTypeSearch
-            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextChange(newText: String?): Boolean {
-                    viewModel.subjectTypeSearch.onNext(newText!!)
-                    adapter?.clearList()
-                    searchTypeIsActive = true
-                    return false
-                }
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.subjectTypeSearch.onNext(newText!!)
+                adapter?.clearList()
+                searchTypeIsActive = true
+                return false
+            }
 
-                override fun onQueryTextSubmit(query: String?): Boolean {
-                    viewModel.subjectTypeSearch.onNext(query!!)
-                    adapter?.clearList()
-                    searchTypeIsActive = true
-                    return false
-                }
-            })
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.subjectTypeSearch.onNext(query!!)
+                adapter?.clearList()
+                searchTypeIsActive = true
+                return false
+            }
+        })
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                adapter?.clearList()
+                viewModel.resetMoviesList()
+                return true
+            }
+        })
+
+        searchView.setOnCloseListener {
+            viewModel.resetMoviesList()
+            return@setOnCloseListener true
+        }
 
         viewModel.subscribeTypeSearchSubject()
         return super.onCreateOptionsMenu(menu)
