@@ -41,9 +41,11 @@ class MoviesListViewModel(
     var searchAction = LiveDataWithValue<List<MovieWithGenres>>()
     var loadingMoreItems = ObservableBoolean(false)
     var loadingEmptyState = ObservableBoolean(true)
+    var emptyStateView = ObservableBoolean(false)
 
     init {
         loadingEmptyState.set(true)
+        emptyStateView.set(false)
     }
 
     fun getPopularMovies() {
@@ -58,6 +60,7 @@ class MoviesListViewModel(
                     genres
                 )
             })
+            .onErrorResumeNext(Observable.just(emptyList()))
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
     }
@@ -70,10 +73,25 @@ class MoviesListViewModel(
             .flatMap {
                 createCombination(it)
             }
-            .subscribe { movieWithGenresList ->
-                onMoviesResult(movieWithGenresList)
-                searchAction.actionOccuredPost(movieWithGenresList)
-            }
+            .subscribe({ movieWithGenresList ->
+                setMoviesList(movieWithGenresList)
+            }, {
+                setSearchEmptyState()
+            })
+    }
+
+    private fun setMoviesList(movieWithGenresList: List<MovieWithGenres>) {
+        if (movieWithGenresList.isNotEmpty()) {
+            emptyStateView.set(false)
+            onMoviesResult(movieWithGenresList)
+            searchAction.actionOccuredPost(movieWithGenresList)
+        } else {
+            emptyStateView.set(true)
+        }
+    }
+
+    private fun setSearchEmptyState() {
+        emptyStateView.set(true)
     }
 
     private fun onMoviesResult(moviesWithGenres: List<MovieWithGenres>) {
@@ -104,10 +122,15 @@ class MoviesListViewModel(
 
         moviesDisposable = movieWithGenreObservable(moviesObservable, genresObservable)
             .subscribe({ moviesWithGenres ->
-                onMoviesResult(moviesWithGenres)
-                moviesAction.actionOccuredPost(moviesWithGenres)
+                if (moviesWithGenres.isEmpty()) {
+                    emptyStateView.set(true)
+                } else {
+                    emptyStateView.set(false)
+                    onMoviesResult(moviesWithGenres)
+                    moviesAction.actionOccuredPost(moviesWithGenres)
+                }
             }, { error ->
-                Log.e("Test error", "test", error)
+                Log.e(" Test error", "test", error)
             }, {
             })
 

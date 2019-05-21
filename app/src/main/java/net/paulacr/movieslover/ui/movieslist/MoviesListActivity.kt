@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -43,6 +44,13 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         } else {
             showRetryButton()
         }
+
+        var p by Delegate()
+        p = ""
+        Log.i("Log delegate", p)
+//        Algoritimos.palindromeCheck(arrayOf("m", "a", "d", "a", "m"))
+//        Algoritimos.test(arrayOf("m", "a", "d", "e", "m"))
+//        Algoritimos.reverseNumber(359)
     }
 
     private fun observeActions() {
@@ -70,9 +78,9 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         val manager = LinearLayoutManager(this)
         rvMoviesList.layoutManager = manager
 
-        val inifiniteScroll = InfiniteScrollManager(manager)
-        inifiniteScroll.setListenerScroll(this)
-        rvMoviesList.addOnScrollListener(inifiniteScroll)
+        val infiniteScroll = InfiniteScrollManager(manager)
+        infiniteScroll.setListenerScroll(this)
+        rvMoviesList.addOnScrollListener(infiniteScroll)
     }
 
     private fun addMoreMovies(items: List<MovieWithGenres>) {

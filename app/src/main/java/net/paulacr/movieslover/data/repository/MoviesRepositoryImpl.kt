@@ -69,13 +69,17 @@ class MoviesRepositoryImpl(val service: ApiInterface, val db: MoviesDatabase, sh
                 } else {
                     Observable.just(localResult)
                 }
+            }.doOnError {
+                Log.e("Error", "msg->$it")
             }
     }
 
     override fun getMovieDetail(movieId: Int): Observable<MovieDetail> {
         return getMovieDetailFromDB(movieId)
             .debounce(TIME_OUT, TimeUnit.MILLISECONDS)
-            .switchIfEmpty(getMovieDetailFromAPI(movieId))
+                // each time we receive a observable source we need to use like the following
+//            .switchIfEmpty(getMovieDetailFromAPI(movieId))
+            .switchIfEmpty(Observable.defer { getMovieDetailFromAPI(movieId) })
             .onErrorResumeNext(getMovieDetailFromAPI(movieId))
     }
 
