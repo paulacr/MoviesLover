@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -17,12 +16,11 @@ import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
 import net.paulacr.movieslover.databinding.ActivityMainBinding
 import net.paulacr.movieslover.ui.moviedetail.MovieDetailActivity
-import net.paulacr.movieslover.ui.moviedetail.MovieListener
 import net.paulacr.movieslover.util.InfiniteScrollManager
 import net.paulacr.movieslover.util.PageUtil
 import org.koin.android.viewmodel.ext.android.viewModel
 
-class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMore, MovieListener {
+class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMore {
 
     private val viewModel: MoviesListViewModel by viewModel()
     private var adapter: MoviesListAdapter? = null
@@ -30,6 +28,10 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     private var searchItem: MenuItem? = null
     private var searchView: SearchView? = null
+
+    var listener: ((Int, MovieWithGenres) -> Unit) = { _, movieWithGenres ->
+        startActivity(MovieDetailActivity.newIntent(this, movieWithGenres))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,13 +46,6 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         } else {
             showRetryButton()
         }
-
-        var p by Delegate()
-        p = ""
-        Log.i("Log delegate", p)
-//        Algoritimos.palindromeCheck(arrayOf("m", "a", "d", "a", "m"))
-//        Algoritimos.test(arrayOf("m", "a", "d", "e", "m"))
-//        Algoritimos.reverseNumber(359)
     }
 
     private fun observeActions() {
@@ -72,7 +67,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
     }
 
     private fun setupRecyclerView(items: List<MovieWithGenres>) {
-        adapter = MoviesListAdapter(items, this)
+        adapter = MoviesListAdapter(items, listener)
         rvMoviesList.adapter = adapter
 
         val manager = LinearLayoutManager(this)
@@ -106,10 +101,6 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         } else {
             viewModel.getMoreMovies()
         }
-    }
-
-    override fun onItemClick(position: Int, movieWithGenres: MovieWithGenres) {
-        startActivity(MovieDetailActivity.newIntent(this, movieWithGenres))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

@@ -10,7 +10,7 @@ import com.bumptech.glide.Glide
 import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
 
-class MoviesListAdapter(moviesList: List<MovieWithGenres>, private val listener: (Int, MovieWithGenres) -> Unit) :
+class MoviesListAdapter(moviesList: List<MovieWithGenres>, val listener: (Int, MovieWithGenres) -> Unit) :
     RecyclerView.Adapter<MoviesListAdapter.MovieViewHolder>() {
 
     private val moviesList = moviesList.toMutableList()
