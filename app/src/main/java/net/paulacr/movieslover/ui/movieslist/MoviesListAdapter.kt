@@ -9,9 +9,8 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
-import net.paulacr.movieslover.ui.moviedetail.MovieListener
 
-class MoviesListAdapter(moviesList: List<MovieWithGenres>, private val listener: MovieListener) :
+class MoviesListAdapter(moviesList: List<MovieWithGenres>, private val listener: (Int, MovieWithGenres) -> Unit) :
     RecyclerView.Adapter<MoviesListAdapter.MovieViewHolder>() {
 
     private val moviesList = moviesList.toMutableList()
@@ -28,7 +27,7 @@ class MoviesListAdapter(moviesList: List<MovieWithGenres>, private val listener:
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         holder.bind(moviesList[position])
         holder.itemView.setOnClickListener {
-            listener.onItemClick(position, moviesList[position])
+            listener(position, moviesList[position])
         }
     }
 

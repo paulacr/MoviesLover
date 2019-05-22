@@ -78,7 +78,3 @@ class MovieDetailActivity : AppCompatActivity() {
         }
     }
 }
-
-interface MovieListener {
-    fun onItemClick(position: Int, movieWithGenres: MovieWithGenres)
-}
