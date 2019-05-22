@@ -11,7 +11,7 @@ import net.paulacr.movieslover.R
 import net.paulacr.movieslover.data.model.MovieWithGenres
 import net.paulacr.movieslover.ui.moviedetail.MovieListener
 
-class MoviesListAdapter(moviesList: List<MovieWithGenres>, val listener: MovieListener) :
+class MoviesListAdapter(moviesList: List<MovieWithGenres>, private val listener: MovieListener) :
     RecyclerView.Adapter<MoviesListAdapter.MovieViewHolder>() {
 
     private val moviesList = moviesList.toMutableList()

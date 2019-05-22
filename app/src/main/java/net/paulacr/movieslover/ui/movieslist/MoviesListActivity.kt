@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,6 +19,7 @@ import net.paulacr.movieslover.databinding.ActivityMainBinding
 import net.paulacr.movieslover.ui.moviedetail.MovieDetailActivity
 import net.paulacr.movieslover.ui.moviedetail.MovieListener
 import net.paulacr.movieslover.util.InfiniteScrollManager
+import net.paulacr.movieslover.util.PageUtil
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMore, MovieListener {
@@ -25,6 +27,9 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
     private val viewModel: MoviesListViewModel by viewModel()
     private var adapter: MoviesListAdapter? = null
     private var searchTypeIsActive = false
+
+    private var searchItem: MenuItem? = null
+    private var searchView: SearchView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +44,13 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         } else {
             showRetryButton()
         }
+
+        var p by Delegate()
+        p = ""
+        Log.i("Log delegate", p)
+//        Algoritimos.palindromeCheck(arrayOf("m", "a", "d", "a", "m"))
+//        Algoritimos.test(arrayOf("m", "a", "d", "e", "m"))
+//        Algoritimos.reverseNumber(359)
     }
 
     private fun observeActions() {
@@ -51,7 +63,11 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         }
 
         viewModel.searchAction.observe(this) {
-            adapter?.showItemsBySearch(it)
+            if (it.isEmpty()) {
+                viewModel.loadingMoreItems.set(false)
+            } else {
+                adapter?.showItemsBySearch(it)
+            }
         }
     }
 
@@ -62,9 +78,9 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
         val manager = LinearLayoutManager(this)
         rvMoviesList.layoutManager = manager
 
-        val inifiniteScroll = InfiniteScrollManager(manager)
-        inifiniteScroll.setListenerScroll(this)
-        rvMoviesList.addOnScrollListener(inifiniteScroll)
+        val infiniteScroll = InfiniteScrollManager(manager)
+        infiniteScroll.setListenerScroll(this)
+        rvMoviesList.addOnScrollListener(infiniteScroll)
     }
 
     private fun addMoreMovies(items: List<MovieWithGenres>) {
@@ -86,7 +102,7 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     override fun onScrollMorePages(page: Int) {
         if (searchTypeIsActive) {
-            viewModel.searchMoreMovies()
+            viewModel.searchMoreMovies(searchView?.query.toString())
         } else {
             viewModel.getMoreMovies()
         }
@@ -98,15 +114,16 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        val searchItem = menu?.findItem(R.id.search)
-        val searchView = searchItem?.actionView as SearchView
+        searchItem = menu?.findItem(R.id.search)
+        searchView = searchItem?.actionView as SearchView
 
         // Set up the query listener that executes the search
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
                 viewModel.subjectTypeSearch.onNext(newText!!)
                 adapter?.clearList()
                 searchTypeIsActive = true
+                PageUtil.resetPage()
                 return false
             }
 
@@ -114,23 +131,26 @@ class MoviesListActivity : AppCompatActivity(), InfiniteScrollManager.OnScrollMo
                 viewModel.subjectTypeSearch.onNext(query!!)
                 adapter?.clearList()
                 searchTypeIsActive = true
+                PageUtil.resetPage()
                 return false
             }
         })
 
-        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+        searchItem?.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                searchTypeIsActive = true
                 return true
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
                 adapter?.clearList()
                 viewModel.resetMoviesList()
+                searchTypeIsActive = false
                 return true
             }
         })
 
-        searchView.setOnCloseListener {
+        searchView?.setOnCloseListener {
             viewModel.resetMoviesList()
             return@setOnCloseListener true
         }

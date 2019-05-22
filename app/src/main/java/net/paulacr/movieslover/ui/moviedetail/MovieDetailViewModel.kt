@@ -5,6 +5,7 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LifecycleObserver
 import android.databinding.ObservableBoolean
 import android.databinding.ObservableField
+import android.support.v4.text.HtmlCompat
 import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -21,7 +22,7 @@ class MovieDetailViewModel(app: Application, val moviesRepository: MoviesReposit
     private lateinit var moviesDetailDisposable: Disposable
     private var compositeDisposable = CompositeDisposable()
 
-    var movieDetailAction = LiveDataWithValue<MovieDetail>()
+    var movieHomepageDetailAction = LiveDataWithValue<String>()
     val movieTitle = ObservableField<String>()
     val movieDescription = ObservableField<String>()
     val movieLanguage = ObservableField<String>()
@@ -44,14 +45,16 @@ class MovieDetailViewModel(app: Application, val moviesRepository: MoviesReposit
         compositeDisposable.add(moviesDetailDisposable)
     }
 
-    private fun setAdditionalData(movieDetail: MovieDetail) {
-        movieDetailAction.actionOccuredPost(movieDetail)
-    }
-
     private fun setPreviousData(movieWithGenres: MovieWithGenres) {
         movieTitle.set(movieWithGenres.movie.title)
         movieDescription.set(movieWithGenres.movie.overview)
         movieLanguage.set("Language ${movieWithGenres.movie.language}")
+    }
+
+    private fun setAdditionalData(movieDetail: MovieDetail) {
+        movieRuntime.set("Runtime: ${movieDetail.runtime}")
+        movieLink.set(HtmlCompat.fromHtml("Link: ${movieDetail.homepage}", HtmlCompat.FROM_HTML_MODE_LEGACY).toString())
+        movieHomepageDetailAction.actionOccuredPost(movieDetail.homepage)
     }
 
     override fun onCleared() {
